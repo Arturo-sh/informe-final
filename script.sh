@@ -25,8 +25,12 @@ fi
 # Add file .docx to working directory
 git add "INFORME FINAL RP-23.docx"
 
+# Show the local repository status
+git status
+echo -e "${blue}------------------------------${reset}"
+
 # Add a commit message
-echo -e -n "${green}Agrega un nombre de versión: ${reset}"
+echo -e -n "${green}Agregue un nombre de versión: ${reset}"
 read COMMIT_MESSAGE
 
 # If the commit message is empty, terminate the script
