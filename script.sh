@@ -13,6 +13,9 @@ STATUS=$(git status | grep -io "nothing to commit")
 # If status message is "nothing to commit", terminate the script
 if [ "${STATUS}" == "nothing to commit" ]; then
     echo -e "${blue}There's no changes${reset}"
+    
+    # Wait for the user to press a key
+    echo -e -n "${cyan}Press a key to continue...${reset}" && read
     exit 1
 fi
 
@@ -27,6 +30,9 @@ read COMMIT_MESSAGE
 if [ "${COMMIT_MESSAGE}" == "" ]; then
     echo -e "${red}You need to specify a message for this file version${reset}"
     echo -e "${red}Run the script again${reset}"
+
+    # Wait for the user to press a key
+    echo -e -n "${cyan}Press a key to continue...${reset}" && read
     exit 1
 fi
 
@@ -41,5 +47,4 @@ git commit -m "${COMMIT_MESSAGE} -> ${CURRENT_DATE}"
 git push
 
 # Wait for the user to press a key
-echo -e -n "${cyan}Press a key to continue...${reset}"
-read
+echo -e -n "${cyan}Press a key to continue...${reset}" && read
