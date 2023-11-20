@@ -14,9 +14,43 @@ box1=$(echo -e ${green}[${reset}${green}*${reset}${green}]${reset})
 box2=$(echo -e ${green}[${reset}${blue}*${reset}${green}]${reset})
 box3=$(echo -e ${green}[${reset}${red}*${reset}${green}]${reset})
 box4=$(echo -e ${green}[${reset}${purple}*${reset}${green}]${reset})
+box5=$(echo -e ${green}[${reset}${cyan}*${reset}${green}]${reset})
 
-# Move to the repository path
-cd /c/xampp/htdocs/informe-final/
+# Function to validate repository path
+function handleRepositoryPath() {
+    while true; do
+        echo -e "\v\t${box4} ${purple} Arrastra la carpeta del repositorio a la terminal y presiona Enter${reset}"
+        echo -e -n "\t    ${purple} Esto solo se hace una vez ${reset}"
+        read -r REPO_PATH
+
+        # Check if the path is empty
+        if [[ -z "${REPO_PATH}" ]]; then
+            echo -e "\v\t${box3} ${red}Debes arrastrar la carpeta del repositorio a la terminal${reset}"
+        elif [[ ! -d "${REPO_PATH}" || ! -d "${REPO_PATH}/.git" ]]; then
+            echo -e "\v\t${box3} ${red}La ruta especificada no es una carpeta o no es un repositorio de GIT${reset}"
+        else
+            echo "${REPO_PATH}" > $(pwd)/repository.txt
+            break
+        fi
+
+        echo -e "\t    ${red}Presiona Ctrl + C para salir${reset}"
+    done
+}
+
+# Get the path of the local repository
+if [[ -f $(pwd)/repository.txt ]]; then
+    REPO_PATH=$(cat $(pwd)/repository.txt)
+        
+    if [[ ! -d "${REPO_PATH}" || ! -d "${REPO_PATH}/.git" ]]; then
+        echo -e "\v\t${box3} ${red}La ruta especificada en el fichero '$(pwd)/repository.txt' no es una carpeta o no es un repositorio de GIT${reset}"
+        handleRepositoryPath
+    fi
+else
+    handleRepositoryPath
+fi
+
+# Change to the local repository directory
+cd "${REPO_PATH}" || exit 1
 
 # Function to terminate the script
 function handleCommitStatus() {
@@ -50,16 +84,41 @@ if [[ "${STATUS}" == "nothing to commit" ]]; then
     handleCommitStatus 1
 fi
 
-# Add file .docx to working directory
-git add "INFORME FINAL RP-23.docx"
+# Function to add files to the commit
+function addFiles() {
+    # Clean the file includeOnly.txt
+    sed -i 's/[[:space:]]*$//' "$(pwd)/includeOnly.txt"
+
+    # Read the file includeOnly.txt and save the files in an array 
+    readarray -t FILES < "$(pwd)/includeOnly.txt"
+
+    # Add each file to the commit
+    for FILE in "${FILES[@]}"; do
+        echo "Adding file: ${FILE}"
+        git add "./${FILE}"
+    done
+}
+
+
+# If file includeOnly.txt is empty, add all files else add only the files specified in the file
+if [[ ! -f $(pwd)/includeOnly.txt ]]; then
+    echo -e "includeOnly.txt" > "$(pwd)/includeOnly.txt"
+    echo -e "\v\t${box4} ${purple}Por defecto únicamente se pasaran al área de trabajo los documentos listados en el fichero $(pwd)/includeOnly.txt para añadir TODOS los documentos reemplace el contenido del fichero includeOnly.txt con un punto .${reset}"    
+fi
+
+# Add files to the commit
+addFiles
 
 # Show the local repository status
 git status
-echo -e "${blue}------------------------------${reset}"
+echo -e "${blue}-----------------------------------------------------------------${reset}"
+
+# Show the repository name
+echo -e "\v\t${box5} ${green}Repository: ${reset}$(basename "${REPO_PATH}")"
 
 while true; do
     # Add a commit message
-    echo -e -n "\n${green}Mensaje del commit: ${reset}"
+    echo -e -n "\v\t${green}Mensaje del commit: ${reset}"
     read -r COMMIT_MESSAGE
 
     # If the commit message is empty, terminate the script
