@@ -1,2 +1,3 @@
 INFORME FINAL RP-23.docx
+INFORME FINAL RP-23.pdf
 includeOnly.txt
